@@ -17,7 +17,7 @@ add_library(loganlm_warnings INTERFACE)
 target_compile_options(loganlm_warnings INTERFACE -Wall -Wextra -Wpedantic -Wconversion)
 
 # The engine
-add_library(loganlm_core src/version.cpp src/storage.cpp)
+add_library(loganlm_core src/version.cpp src/storage.cpp src/operation.cpp src/add.cpp src/tensor.cpp)
 target_include_directories(loganlm_core PUBLIC include)
 target_link_libraries(loganlm_core PRIVATE loganlm_warnings)
 
@@ -39,6 +39,6 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 include(GoogleTest)
 
-add_executable(loganlm_tests tests/test_version.cpp tests/test_storage.cpp)
+add_executable(loganlm_tests tests/test_version.cpp tests/test_storage.cpp tests/test_add.cpp tests/test_tensor.cpp)
 target_link_libraries(loganlm_tests PRIVATE loganlm_core loganlm_warnings GTest::gtest_main)
 gtest_discover_tests(loganlm_tests)
