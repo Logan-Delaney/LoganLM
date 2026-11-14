@@ -90,3 +90,80 @@ TEST(Apply, WorksThroughABaseClassReference) {
 
     EXPECT_EQ(result.storage().data(), (std::vector<float>{4.0f, 6.0f}));
 }
+
+TEST(Stack, StacksVectorsIntoAMatrix) {
+    loganlm::Tensor a(loganlm::Storage({1.0f, 2.0f, 3.0f}, {3}));
+    loganlm::Tensor b(loganlm::Storage({4.0f, 5.0f, 6.0f}, {3}));
+
+    loganlm::Tensor result = loganlm::stack({&a, &b});
+
+    EXPECT_EQ(result.storage().shape(), (std::vector<std::size_t>{2, 3}));
+    EXPECT_EQ(result.storage().data(), (std::vector<float>{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f}));
+}
+
+TEST(Stack, StacksMatricesIntoAThreeDimensionalTensor) {
+    loganlm::Tensor a(loganlm::Storage({1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f}, {2, 3}));
+    loganlm::Tensor b(loganlm::Storage({7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f}, {2, 3}));
+    loganlm::Tensor c(loganlm::Storage({13.0f, 14.0f, 15.0f, 16.0f, 17.0f, 18.0f}, {2, 3}));
+
+    loganlm::Tensor result = loganlm::stack({&a, &b, &c});
+
+    EXPECT_EQ(result.storage().shape(), (std::vector<std::size_t>{3, 2, 3}));
+    EXPECT_EQ(result.storage().data(),
+              (std::vector<float>{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f,
+                                  11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f, 17.0f, 18.0f}));
+}
+
+TEST(Stack, StacksASingleTensorIntoALeadingAxisOfOne) {
+    loganlm::Tensor a(loganlm::Storage({1.0f, 2.0f, 3.0f}, {3}));
+
+    loganlm::Tensor result = loganlm::stack({&a});
+
+    EXPECT_EQ(result.storage().shape(), (std::vector<std::size_t>{1, 3}));
+    EXPECT_EQ(result.storage().data(), (std::vector<float>{1.0f, 2.0f, 3.0f}));
+}
+
+TEST(Stack, StacksScalarsIntoAVector) {
+    loganlm::Tensor a(loganlm::Storage({1.0f}, {}));
+    loganlm::Tensor b(loganlm::Storage({2.0f}, {}));
+    loganlm::Tensor c(loganlm::Storage({3.0f}, {}));
+
+    loganlm::Tensor result = loganlm::stack({&a, &b, &c});
+
+    EXPECT_EQ(result.storage().shape(), (std::vector<std::size_t>{3}));
+    EXPECT_EQ(result.storage().data(), (std::vector<float>{1.0f, 2.0f, 3.0f}));
+}
+
+TEST(Stack, StacksZeroSizedTensorsIntoAZeroSizedResult) {
+    loganlm::Tensor a(loganlm::Storage({}, {0, 3}));
+    loganlm::Tensor b(loganlm::Storage({}, {0, 3}));
+
+    loganlm::Tensor result = loganlm::stack({&a, &b});
+
+    EXPECT_EQ(result.storage().shape(), (std::vector<std::size_t>{2, 0, 3}));
+    EXPECT_TRUE(result.storage().data().empty());
+}
+
+TEST(Stack, LeavesInputsUnchanged) {
+    loganlm::Tensor a(loganlm::Storage({1.0f, 2.0f, 3.0f}, {3}));
+    loganlm::Tensor b(loganlm::Storage({4.0f, 5.0f, 6.0f}, {3}));
+
+    loganlm::Tensor result = loganlm::stack({&a, &b});
+
+    EXPECT_EQ(a.storage().data(), (std::vector<float>{1.0f, 2.0f, 3.0f}));
+    EXPECT_EQ(a.storage().shape(), (std::vector<std::size_t>{3}));
+    EXPECT_EQ(b.storage().data(), (std::vector<float>{4.0f, 5.0f, 6.0f}));
+    EXPECT_EQ(b.storage().shape(), (std::vector<std::size_t>{3}));
+}
+
+TEST(Stack, ThrowsOnDifferentShapes) {
+    loganlm::Tensor a(loganlm::Storage({1.0f, 2.0f, 3.0f}, {3}));
+    loganlm::Tensor b(loganlm::Storage({1.0f, 2.0f, 3.0f, 4.0f}, {4}));
+
+    EXPECT_THROW((void)loganlm::stack({&a, &b}), std::invalid_argument);
+}
+
+TEST(Stack, ThrowsOnEmptyList) {
+    EXPECT_THROW((void)loganlm::stack(std::vector<const loganlm::Tensor*>{}),
+                 std::invalid_argument);
+}

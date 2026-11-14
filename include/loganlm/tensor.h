@@ -14,4 +14,5 @@ private:
     Storage storage_;
 };
 [[nodiscard]] Tensor apply(const Operation& op, const std::vector<const Tensor*>& inputs);
+[[nodiscard]] Tensor stack(const std::vector<const Tensor*>& tensors);
 }  // namespace loganlm
